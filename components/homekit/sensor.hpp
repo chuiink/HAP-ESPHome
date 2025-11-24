@@ -86,14 +86,16 @@ namespace esphome
                 ESP_LOGI(TAG,"reader setting detected");
                 hap_val_t val;
                 if (hc == char_co2_level) {
+                    ESP_LOGI(TAG,"reader setting detected co2 level");
                     // 从你的传感器读取实时数据
                     val.f = v;  // float
                     hap_char_update_val(char_co2_level, &val);
-                } else if (strcmp(hc->type_uuid, HAP_CHAR_UUID_CARBON_DIOXIDE_DETECTED) == 0) { //HAP_CHAR_UUID_CARBON_DIOXIDE_DETECTED
-                    val.u = detected;
-                    val.i = detected_int;
-                    hap_char_update_val(hc, &val);
+//                } else if (strcmp(hc->type_uuid, HAP_CHAR_UUID_CARBON_DIOXIDE_DETECTED) == 0) { //HAP_CHAR_UUID_CARBON_DIOXIDE_DETECTED
+//                    val.u = detected;
+//                    val.i = detected_int;
+//                    hap_char_update_val(hc, &val);
                 } else if (hc == char_co2_peak_level) {
+                    ESP_LOGI(TAG,"reader setting detected co2 peak level");
                     val.f = co2_peak_level;
                     hap_char_update_val(char_co2_peak_level, &val);
                 }
