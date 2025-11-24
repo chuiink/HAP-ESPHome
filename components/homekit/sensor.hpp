@@ -75,14 +75,13 @@ namespace esphome
             std::string device_class = sensorPtr->get_device_class();
             if (std::equal(device_class.begin(), device_class.end(), strdup("carbon_dioxide"))) {
                 float v = sensorPtr->get_state();
+                uint8_t detected = (v >= warning_level) ? 1 : 0;
                 hap_val_t val;
                 if (hc == char_co2_level) {
                     // 从你的传感器读取实时数据
                     val.f = v;  // float
                     hap_char_update_val(char_co2_level, &val);
                 } else if (hc == char_co2_detected) {
-                    float co2 = v;
-                    uint8_t detected = (co2 >= warning_level) ? 1 : 0;
                     val.u = detected;
                     hap_char_update_val(char_co2_detected, &val);
                 } else if (hc == char_co2_peak_level) {
