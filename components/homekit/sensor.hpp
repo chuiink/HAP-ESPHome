@@ -36,9 +36,14 @@ namespace esphome
 
                   // --- 根据阈值判断是否检测到高浓度
                   uint8_t detected = (v >= warning_level) ? 1 : 0;
+                  int detected_int = (v >= warning_level) ? 1 : 0;
 
+                  if (detected == 1) {
+                      ESP_LOGI(TAG,"updater setting detected");
+                  }
                   hap_val_t det_val;
                   det_val.u = detected;
+                  det_val.i = detected_int
                   hap_char_update_val(char_co2_detected, &det_val);
 
                   if (v > co2_peak_level) {
@@ -76,6 +81,8 @@ namespace esphome
             if (std::equal(device_class.begin(), device_class.end(), strdup("carbon_dioxide"))) {
                 float v = sensorPtr->get_state();
                 uint8_t detected = (v >= warning_level) ? 1 : 0;
+                int detected_int = (v >= warning_level) ? 1 : 0;
+                ESP_LOGI(TAG,"reader setting detected");
                 hap_val_t val;
                 if (hc == char_co2_level) {
                     // 从你的传感器读取实时数据
@@ -83,6 +90,7 @@ namespace esphome
                     hap_char_update_val(char_co2_level, &val);
                 } else if (hc == char_co2_detected) {
                     val.u = detected;
+                    val.i = detected_int;
                     hap_char_update_val(char_co2_detected, &val);
                 } else if (hc == char_co2_peak_level) {
                     val.f = co2_peak_level;
