@@ -44,7 +44,9 @@ namespace esphome
                   hap_val_t det_val;
                   det_val.u = detected;
                   det_val.i = detected_int;
-                  hap_char_update_val(char_co2_detected, &det_val);
+                  hap_char_t* on_char = hap_serv_get_first_char(hs);
+                  ESP_LOGD(TAG, "get is co2 detect char_t - f:%.2f u:%lu", hap_char_get_val(on_char)->f, hap_char_get_val(on_char)->u);
+                  hap_char_update_val(on_char, &det_val);
 
                   if (v > co2_peak_level) {
                       co2_peak_level = v;
@@ -88,10 +90,10 @@ namespace esphome
                     // 从你的传感器读取实时数据
                     val.f = v;  // float
                     hap_char_update_val(char_co2_level, &val);
-                } else if (hc == char_co2_detected) {
+                } else if (strcmp(hc->type_uuid, HAP_CHAR_UUID_CARBON_DIOXIDE_DETECTED) == 0) { //HAP_CHAR_UUID_CARBON_DIOXIDE_DETECTED
                     val.u = detected;
                     val.i = detected_int;
-                    hap_char_update_val(char_co2_detected, &val);
+                    hap_char_update_val(hc, &val);
                 } else if (hc == char_co2_peak_level) {
                     val.f = co2_peak_level;
                     hap_char_update_val(char_co2_peak_level, &val);
@@ -137,7 +139,7 @@ namespace esphome
           service = hap_serv_air_quality_sensor_create(sensorPtr->state);
         }
         else if (std::equal(device_class.begin(), device_class.end(), strdup("carbon_dioxide"))) {
-            service = hap_serv_carbon_dioxide_sensor_create(1);
+            service = hap_serv_carbon_dioxide_sensor_create(0);
             
 //            hap_char_t *char_co2_level = nullptr;
 //            hap_char_t *char_co2_detected = nullptr;
@@ -148,10 +150,10 @@ namespace esphome
             //峰值
             char_co2_peak_level = hap_char_carbon_dioxide_peak_level_create(450);
             hap_serv_add_char(service, char_co2_peak_level);
-            // 添加 CarbonDioxideDetected
-            // 0 = 正常, 1 = 检测到高浓度
-            char_co2_detected = hap_char_carbon_dioxide_detected_create(0);
-            hap_serv_add_char(service, char_co2_detected);
+            // 添加 CarbonDioxideDetected 疑似默认会添加一个
+//            // 0 = 正常, 1 = 检测到高浓度
+//            char_co2_detected = hap_char_carbon_dioxide_detected_create(0);
+//            hap_serv_add_char(service, char_co2_detected);
             ESP_LOGD(TAG, "creater co2 senser service");
         }
         else if (std::equal(device_class.begin(), device_class.end(), strdup("carbon_monoxide"))) {
