@@ -43,7 +43,7 @@ namespace esphome
                   }
                   hap_val_t det_val;
                   det_val.u = detected;
-                  det_val.i = detected_int
+                  det_val.i = detected_int;
                   hap_char_update_val(char_co2_detected, &det_val);
 
                   if (v > co2_peak_level) {
