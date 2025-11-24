@@ -10,6 +10,7 @@
 #include "hap_entity.h"
 static hap_char_t *char_co2_level = nullptr;
 static hap_char_t *char_co2_detected = nullptr;
+static hap_char_t *char_co2_peak_level = nullptr;
 
 namespace esphome
 {
@@ -33,7 +34,7 @@ namespace esphome
                   hap_char_update_val(char_co2_level, &level_val);
 
                   // --- 根据阈值判断是否检测到高浓度
-                  uint8_t detected = (v >= 1200) ? 1 : 0;
+                  uint8_t detected = (v >= 600) ? 1 : 0;
 
                   hap_val_t det_val;
                   det_val.u = detected;
@@ -104,7 +105,8 @@ namespace esphome
             char_co2_level = hap_char_carbon_dioxide_level_create(450);   // 初始值 400ppm
             hap_serv_add_char(service, char_co2_level);
             //峰值
-//            char_co2_level hap_char_carbon_dioxide_peak_level_create
+            char_co2_peak_level = hap_char_carbon_dioxide_peak_level_create(2000)
+            hap_serv_add_char(service, char_co2_peak_level);
             // 添加 CarbonDioxideDetected
             // 0 = 正常, 1 = 检测到高浓度
             char_co2_detected = hap_char_carbon_dioxide_detected_create(0);
