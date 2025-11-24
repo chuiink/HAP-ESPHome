@@ -11,7 +11,7 @@
 static hap_char_t *char_co2_level = nullptr;
 static hap_char_t *char_co2_peak_level = nullptr;
 static float co2_peak_level = 450;
-static float warning_level = 1100;
+static float warning_level = 1300;
 namespace esphome
 {
   namespace homekit
