@@ -11,7 +11,8 @@
 static hap_char_t *char_co2_level = nullptr;
 static hap_char_t *char_co2_detected = nullptr;
 static hap_char_t *char_co2_peak_level = nullptr;
-
+static float co2_peak_level = 450;
+static float warning_level = 600;
 namespace esphome
 {
   namespace homekit
@@ -27,18 +28,28 @@ namespace esphome
         if (acc) {
           hap_serv_t* hs = hap_serv_get_next(hap_acc_get_first_serv(acc));
           if (hs) {
-            std::string device_class = obj->get_device_class();
+              std::string device_class = obj->get_device_class();
               if (std::equal(device_class.begin(), device_class.end(), strdup("carbon_dioxide"))) {
                   hap_val_t level_val;
                   level_val.f = v;
                   hap_char_update_val(char_co2_level, &level_val);
 
                   // --- 根据阈值判断是否检测到高浓度
-                  uint8_t detected = (v >= 600) ? 1 : 0;
+                  uint8_t detected = (v >= warning_level) ? 1 : 0;
 
                   hap_val_t det_val;
                   det_val.u = detected;
                   hap_char_update_val(char_co2_detected, &det_val);
+
+                  if (v > co2_peak_level) {
+                      co2_peak_level = v;
+                      ESP_LOGI(TAG, "CO2", "New peak CO2 = %.1f ppm", co2_peak_level);
+
+                  }
+                  // 如果你有 PeakLevel 特性，更新到 HomeKit
+                  hap_val_t peak_val;
+                  peak_val.f = co2_peak_level;
+                  hap_char_update_val(char_co2_peak_level, &peak_val);
 
                   ESP_LOGI(TAG, "CO2", "Updated: %.1f ppm, detected=%d", v, detected);
 
@@ -61,15 +72,38 @@ namespace esphome
         if (serv_priv) {
           sensor::Sensor* sensorPtr = (sensor::Sensor*)serv_priv;
           ESP_LOGD(TAG, "Read called for Accessory %s (%s)", std::to_string(sensorPtr->get_object_id_hash()).c_str(), sensorPtr->get_name().c_str());
-          hap_val_t sensorValue;
-          float v = sensorPtr->get_state();
-          if (ceilf(v) == v) {
-            sensorValue.u = v;
-          } else {
-            sensorValue.f = v;
-          }
-          hap_char_update_val(hc, &sensorValue);
-          return HAP_SUCCESS;
+            std::string device_class = sensorPtr->get_device_class();
+            if (std::equal(device_class.begin(), device_class.end(), strdup("carbon_dioxide"))) {
+                float v = sensorPtr->get_state();
+                hap_val_t val;
+                if (hc == char_co2_level) {
+                    // 从你的传感器读取实时数据
+                    val.f = v;  // float
+                    hap_char_update_val(char_co2_level, &val);
+                } else if (hc == char_co2_detected) {
+                    float co2 = v;
+                    uint8_t detected = (co2 >= warning_level) ? 1 : 0;
+                    val.u = detected;
+                    hap_char_update_val(char_co2_detected, &val);
+                } else if (hc == char_co2_peak_level) {
+                    val.f = co2_peak_level;
+                    hap_char_update_val(char_co2_peak_level, &val);
+                }
+                
+                ESP_LOGI(TAG, "CO2", "Updated: %.1f ppm, detected=%d", v, detected);
+                return HAP_SUCCESS;
+            } else {
+                hap_val_t sensorValue;
+                float v = sensorPtr->get_state();
+                if (ceilf(v) == v) {
+                  sensorValue.u = v;
+                } else {
+                  sensorValue.f = v;
+                }
+                hap_char_update_val(hc, &sensorValue);
+                return HAP_SUCCESS;
+
+            }
         }
         return HAP_FAIL;
       }
@@ -105,7 +139,7 @@ namespace esphome
             char_co2_level = hap_char_carbon_dioxide_level_create(450);   // 初始值 400ppm
             hap_serv_add_char(service, char_co2_level);
             //峰值
-            char_co2_peak_level = hap_char_carbon_dioxide_peak_level_create(2000);
+            char_co2_peak_level = hap_char_carbon_dioxide_peak_level_create(450);
             hap_serv_add_char(service, char_co2_peak_level);
             // 添加 CarbonDioxideDetected
             // 0 = 正常, 1 = 检测到高浓度
