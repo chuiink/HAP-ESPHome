@@ -29,14 +29,14 @@ namespace esphome
             std::string device_class = obj->get_device_class();
               if (std::equal(device_class.begin(), device_class.end(), strdup("carbon_dioxide"))) {
                   hap_val_t level_val;
-                  level_val.f = v
+                  level_val.f = v;
                   hap_char_update_val(char_co2_level, &level_val);
 
                   // --- 根据阈值判断是否检测到高浓度
                   uint8_t detected = (v >= 1200) ? 1 : 0;
 
                   hap_val_t det_val;
-                  det_val.u = detected
+                  det_val.u = detected;
                   hap_char_update_val(char_co2_detected, &det_val);
 
                   ESP_LOGI(TAG, "CO2", "Updated: %.1f ppm, detected=%d", v, detected);
