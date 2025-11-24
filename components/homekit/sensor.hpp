@@ -8,6 +8,9 @@
 #include <hap_apple_servs.h>
 #include <hap_apple_chars.h>
 #include "hap_entity.h"
+static hap_char_t *char_co2_level = nullptr;
+static hap_char_t *char_co2_detected = nullptr;
+
 namespace esphome
 {
   namespace homekit
@@ -23,15 +26,32 @@ namespace esphome
         if (acc) {
           hap_serv_t* hs = hap_serv_get_next(hap_acc_get_first_serv(acc));
           if (hs) {
-            hap_char_t* on_char = hap_serv_get_first_char(hs);
-            ESP_LOGD(TAG, "HAP CURRENT VALUE - f:%.2f u:%lu", hap_char_get_val(on_char)->f, hap_char_get_val(on_char)->u);
-            hap_val_t state;
-            if (ceilf(v) == v) {
-              state.u = v;
-            } else {
-              state.f = v;
-            }
-            hap_char_update_val(on_char, &state);
+            std::string device_class = obj->get_device_class();
+              if (std::equal(device_class.begin(), device_class.end(), strdup("carbon_dioxide"))) {
+                  hap_val_t level_val;
+                  level_val.f = v
+                  hap_char_update_val(char_co2_level, &level_val);
+
+                  // --- 根据阈值判断是否检测到高浓度
+                  uint8_t detected = (v >= 1200) ? 1 : 0;
+
+                  hap_val_t det_val;
+                  det_val.u = detected
+                  hap_char_update_val(char_co2_detected, &det_val);
+
+                  ESP_LOGI(TAG, "CO2", "Updated: %.1f ppm, detected=%d", v, detected);
+
+              } else {
+                  hap_char_t* on_char = hap_serv_get_first_char(hs);
+                  ESP_LOGD(TAG, "HAP CURRENT VALUE - f:%.2f u:%lu", hap_char_get_val(on_char)->f, hap_char_get_val(on_char)->u);
+                  hap_val_t state;
+                  if (ceilf(v) == v) {
+                    state.u = v;
+                  } else {
+                    state.f = v;
+                  }
+                  hap_char_update_val(on_char, &state);
+              }
           }
         }
         return;
@@ -77,8 +97,8 @@ namespace esphome
         else if (std::equal(device_class.begin(), device_class.end(), strdup("carbon_dioxide"))) {
             service = hap_serv_carbon_dioxide_sensor_create(0);
             
-            hap_char_t *char_co2_level = nullptr;
-            hap_char_t *char_co2_detected = nullptr;
+//            hap_char_t *char_co2_level = nullptr;
+//            hap_char_t *char_co2_detected = nullptr;
 
             // 添加 CarbonDioxideLevel (ppm)
             char_co2_level = hap_char_carbon_dioxide_level_create(450);   // 初始值 400ppm
