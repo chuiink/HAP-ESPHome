@@ -75,7 +75,21 @@ namespace esphome
           service = hap_serv_air_quality_sensor_create(sensorPtr->state);
         }
         else if (std::equal(device_class.begin(), device_class.end(), strdup("carbon_dioxide"))) {
-          service = hap_serv_carbon_dioxide_sensor_create(false);
+            service = hap_serv_carbon_dioxide_sensor_create(0);
+            
+            hap_char_t *char_co2_level = nullptr;
+            hap_char_t *char_co2_detected = nullptr;
+
+            // 添加 CarbonDioxideLevel (ppm)
+            char_co2_level = hap_char_carbon_dioxide_level_create(450);   // 初始值 400ppm
+            hap_serv_add_char(service, char_co2_level);
+            //峰值
+//            char_co2_level hap_char_carbon_dioxide_peak_level_create
+            // 添加 CarbonDioxideDetected
+            // 0 = 正常, 1 = 检测到高浓度
+            char_co2_detected = hap_char_carbon_dioxide_detected_create(0);
+            hap_serv_add_char(service, char_co2_detected);
+            ESP_LOGD(TAG, "creater co2 senser service");
         }
         else if (std::equal(device_class.begin(), device_class.end(), strdup("carbon_monoxide"))) {
           service = hap_serv_carbon_monoxide_sensor_create(false);
