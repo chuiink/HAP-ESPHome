@@ -150,7 +150,7 @@ namespace esphome
             hap_serv_add_char(service, char_co2_peak_level);
             // 添加 CarbonDioxideDetected
             // 0 = 正常, 1 = 检测到高浓度
-            char_co2_detected = hap_char_carbon_dioxide_detected_create(1);
+            char_co2_detected = hap_char_carbon_dioxide_detected_create(0);
             hap_serv_add_char(service, char_co2_detected);
             ESP_LOGD(TAG, "creater co2 senser service");
         }
